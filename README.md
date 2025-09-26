@@ -1,7 +1,7 @@
 # Cellular Automaton Simulator
 
 A web-based interactive simulator for cellular automata, accelerated by WebGPU for high-performance simulations. Users can configure up to four independent rule sets (birth and survival rules based on neighbor counts in customizable masks), set up initial grid states on a large simulation canvas, and run real-time evolutions. Built with React, TypeScript, Tailwind CSS, and WebGPU for a responsive, performant UI.
-![Screenshot Placeholder](https://i.imgur.com/AHT6cOv.png)  
+![Screenshot Placeholder](https://i.imgur.com/cuvOw6A.png)  
 
 ## Features
 
@@ -11,8 +11,8 @@ A web-based interactive simulator for cellular automata, accelerated by WebGPU f
 - **Rule Configuration**: Per-mask inputs for Lower/Upper Born (dead cell becomes alive) and Lower/Upper Stable (alive cell survives) neighbor counts. Defaults to Conway's Game of Life for mask n1 (e.g., Born: 3/3, Stable: 2/3).
 - **Simulation Controls**:
   - Start/Stop button to toggle animation loop.
-  - Speed slider (1–60 FPS).
-  - Randomize (10% density alive cells) or Clear (all dead) the main grid.
+  - Speed slider (1–60 FPS). Density slider (0-100 %).
+  - Randomize (density of alive cells) or Clear (all dead) the main grid.
   - Dynamic grid sizing based on viewport (e.g., fits container width, odd-sized for symmetry).
 - **Visual Feedback**:
   - Main simulation: Green pixels for alive cells, black for dead on a canvas.
@@ -28,7 +28,7 @@ This project supports complex automata by combining multiple rules (e.g., hybrid
 
 ## Demo
 
-- [Live Demo](https://your-app-url.com) *(Replace with your deployed URL, e.g., on Vercel/Netlify.)*
+- [Live Demo](https://cellularautomaton.vercel.app)
 - Or run locally after installation (see below).
 
 ## Installation
@@ -185,6 +185,6 @@ Bug reports (e.g., WebGPU errors, mobile issues) and feature requests (e.g., mor
 
 ## Acknowledgments
 
-- Inspired by Conway's Game of Life and cellular automata theory.
+- Inspired by [Acerola](https://www.youtube.com/watch?v=I1JBiZrZ_XM), Conway's Game of Life, and cellular automata theory
 - WebGPU examples from Mozilla Developer Network (MDN) and WebGPU spec.
 - Built with love using React, TypeScript, and WebGPU.

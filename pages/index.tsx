@@ -46,6 +46,7 @@ export default function Home() {
   const [isRunning, setIsRunning] = useState(false); // Toggle for starting/stopping animation
   const [isEnabled, setIsEnabled] = useState(true); // Overall enabled state based on any mask active
   const [animationSpeed, setAnimationSpeed] = useState(30); // FPS for simulation speed
+  const [density, setDensity] = useState(0.1); // Density for random grid generation (0 to 1, initial 0.1)
   const [initializationStatus, setInitializationStatus] = useState("Initializing WebGPU..."); // Status for loading
 
   // Custom hook for WebGPU-based simulation
@@ -78,14 +79,15 @@ export default function Home() {
   }, [n1Enabled, n2Enabled, n3Enabled, n4Enabled]);
 
   /**
-   * Initializes a random grid with a specified density (10% alive cells).
+   * Initializes a random grid with a specified density (0 to 1).
    * @param size - The side length of the square grid
+   * @param density - Probability (0-1) of a cell being alive
    * @returns Uint8Array representing the grid (1 = alive, 0 = dead)
    */
-  const initializeGrid = useCallback((size: number): Uint8Array => {
+  const initializeGrid = useCallback((size: number, density: number): Uint8Array => {
     const grid = new Uint8Array(size * size);
     for (let i = 0; i < grid.length; i++) {
-      grid[i] = Math.random() < 0.1 ? 1 : 0;
+      grid[i] = Math.random() < density ? 1 : 0;
     }
     return grid;
   }, []);
@@ -248,7 +250,7 @@ export default function Home() {
    */
   const handleRandomize = () => {
     setIsRunning(false);
-    const newGrid = initializeGrid(mSize);
+    const newGrid = initializeGrid(mSize, density);
     setGrid(newGrid);
     resetSimulation(newGrid);
   };
@@ -267,21 +269,25 @@ export default function Home() {
   return (
     <div className={`flex ${isMobileLayout ? 'flex-col' : 'flex-row'} gap-2 py-3 text-white`}>
       {/* Left section: Canvas and controls */}
-      <div ref={containerRef} className={`flex flex-col ${isMobileLayout ? 'w-full px-5' : 'w-1/2 pr-5 h-full max-h-screen'} gap-4`}>
-        <div className="flex-1" style={{ minHeight: 0 }}>
+      <div ref={containerRef} className={`flex flex-col ${isMobileLayout ? 'w-full px-5' : 'w-1/2 pr-5 h-full'} gap-4`}>
+        <div className="flex-1 relative" style={{ minHeight: 0 }}>
           {/* Loading overlay when WebGPU is initializing */}
           {!isReady && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-10">
               <span className="text-xl font-bold">{initializationStatus}</span>
             </div>
           )}
+          {/* Size overlay in top-left corner */}
+          <div className="absolute top-2 left-2 z-10 bg-black opacity-70 text-white text-sm px-2 py-1 rounded">
+            {mSize}x{mSize}
+          </div>
           <canvas
             ref={canvasRef}
             className="w-full h-full border border-gray-600 object-contain"
           />
         </div>
-        {/* Controls: Speed slider, size display, buttons */}
-        <div className="flex flex-col gap-3">
+        {/* Controls: Speed slider, density slider, buttons */}
+        <div className="flex flex-col gap-3 pl-2">
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-400 min-w-[80px]">Speed: {animationSpeed}fps</span>
             <input
@@ -294,7 +300,16 @@ export default function Home() {
             />
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-400 min-w-[80px]">Size: {mSize}x{mSize}</span>
+            <span className="text-sm text-gray-400 min-w-[80px]">Density: {density.toFixed(2)}</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={density}
+              onChange={(e) => setDensity(Number(e.target.value))}
+              className="flex-1"
+            />
           </div>
           <div className="flex gap-2">
             <button onClick={handleRandomize} className="px-4 py-2 bg-green-600 rounded hover:bg-green-700">Random</button>

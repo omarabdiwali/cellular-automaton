@@ -180,13 +180,13 @@ export default function Home() {
   useEffect(() => {
     if (isReady) {
       setInitializationStatus("Ready");
-      const newGrid = initializeGrid(mSize);
-      setGrid(newGrid);
-      resetSimulation(newGrid);
+      const emptyGrid = new Uint8Array(mSize * mSize);
+      setGrid(emptyGrid);
+      resetSimulation(emptyGrid);
     } else {
       setInitializationStatus("Initializing WebGPU...");
     }
-  }, [mSize, isReady, initializeGrid, resetSimulation]);
+  }, [mSize, isReady, resetSimulation]);
 
   // Draw grid whenever it updates
   useEffect(() => {

@@ -33,11 +33,12 @@ export default function Mask({
   const handleBoundaryChange = useCallback((key: keyof Boundaries, value: string) => {
     if (!enabled) return;
     const numValue = parseInt(value, 10);
+    const properVal = isNaN(numValue) ? 0 : Math.min(Math.max(0, numValue), size * size);
     setGlobalBoundaries(prev => ({
       ...prev,
-      [key]: isNaN(numValue) ? 0 : Math.max(0, numValue),
+      [key]: properVal,
     }));
-  }, [enabled, setGlobalBoundaries]);
+  }, [enabled, setGlobalBoundaries, size]);
 
   // Updates a single cell in the grid
   const updateCell = useCallback((pos: number) => {
@@ -152,7 +153,7 @@ export default function Mask({
               readOnly={!enabled}
               className={inputClasses} 
               type="number" 
-              value={boundaries.lowerBorn} 
+              value={boundaries.lowerBorn == 0 ? '' : boundaries.lowerBorn} 
               onChange={(e) => handleBoundaryChange('lowerBorn', e.target.value)} 
             />
           </div>
@@ -164,7 +165,7 @@ export default function Mask({
               readOnly={!enabled}
               className={inputClasses} 
               type="number" 
-              value={boundaries.upperBorn} 
+              value={boundaries.upperBorn == 0 ? '' : boundaries.upperBorn} 
               onChange={(e) => handleBoundaryChange('upperBorn', e.target.value)} 
             />
           </div>
@@ -178,7 +179,7 @@ export default function Mask({
               readOnly={!enabled}
               className={inputClasses} 
               type="number" 
-              value={boundaries.lowerStable} 
+              value={boundaries.lowerStable == 0 ? '' : boundaries.lowerStable} 
               onChange={(e) => handleBoundaryChange('lowerStable', e.target.value)} 
             />
           </div>
@@ -190,7 +191,7 @@ export default function Mask({
               readOnly={!enabled}
               className={inputClasses} 
               type="number" 
-              value={boundaries.upperStable} 
+              value={boundaries.upperStable == 0 ? '' : boundaries.upperStable} 
               onChange={(e) => handleBoundaryChange('upperStable', e.target.value)} 
             />
           </div>

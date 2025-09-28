@@ -15,7 +15,6 @@ export default function Home() {
   // Refs for DOM elements and performance tracking
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMobileLayout, setIsMobileLayout] = useState(false); // Detects if screen is mobile-sized (<1000px)
-  const [grid, setGrid] = useState<Uint8Array | null>(null); // Current state of the main grid
   const canvasRef = useRef<HTMLCanvasElement>(null); // Canvas for rendering the grid
   const imageDataRef = useRef<ImageData | null>(null); // Cached image data for efficient drawing
   const lastUpdateTimeRef = useRef<number>(0); // Tracks time since last simulation step
@@ -50,7 +49,7 @@ export default function Home() {
   const [initializationStatus, setInitializationStatus] = useState("Initializing WebGPU..."); // Status for loading
 
   // Custom hook for WebGPU-based simulation
-  const { runSimulationStep, readGridData, resetSimulation, isReady } = useWebGPUSimulation(mSize, nSize);
+  const { runSimulationStep, drawGridData, resetSimulation, isReady } = useWebGPUSimulation(mSize, nSize);
   const isRunningRef = useRef(isRunning); // Ref to track running state without re-renders
 
   // Sync running state to ref
@@ -108,53 +107,6 @@ export default function Home() {
     return grid;
   };
 
-  /**
-   * Renders the grid to the canvas using ImageData for performance.
-   * Each cell is a 1x1 pixel block colored green for alive, black for dead.
-   * @param currentGrid - The Uint8Array grid to draw
-   */
-  const drawGrid = useCallback((currentGrid: Uint8Array) => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d', { alpha: false });
-    if (!canvas || !ctx || !currentGrid) return;
-
-    const cellSize = 1; // Fixed pixel size per cell
-    const width = mSize * cellSize;
-    const height = mSize * cellSize;
-
-    // Resize canvas if needed and create ImageData
-    if (canvas.width !== width || canvas.height !== height) {
-      canvas.width = width;
-      canvas.height = height;
-      imageDataRef.current = ctx.createImageData(width, height);
-    }
-    const imageData = imageDataRef.current;
-    if (!imageData) return;
-
-    const data = imageData.data;
-    const aliveColor = { r: 132, g: 204, b: 22 }; // Green color for alive cells
-    const deadColor = { r: 0, g: 0, b: 0 }; // Black for dead cells
-
-    // Fill pixels for each cell
-    for (let i = 0; i < currentGrid.length; i++) {
-      const isAlive = currentGrid[i] === 1;
-      const color = isAlive ? aliveColor : deadColor;
-      const x = (i % mSize) * cellSize;
-      const y = Math.floor(i / mSize) * cellSize;
-
-      for (let row = 0; row < cellSize; row++) {
-        for (let col = 0; col < cellSize; col++) {
-          const pixelIndex = ((y + row) * width + (x + col)) * 4;
-          data[pixelIndex] = color.r;
-          data[pixelIndex + 1] = color.g;
-          data[pixelIndex + 2] = color.b;
-          data[pixelIndex + 3] = 255;
-        }
-      }
-    }
-    ctx.putImageData(imageData, 0, 0);
-  }, [mSize]);
-
   // Handle responsive layout detection (mobile vs desktop)
   useEffect(() => {
     const checkScreenWidth = () => setIsMobileLayout(window.innerWidth < 1000);
@@ -183,19 +135,11 @@ export default function Home() {
     if (isReady) {
       setInitializationStatus("Ready");
       const emptyGrid = new Uint8Array(mSize * mSize);
-      setGrid(emptyGrid);
-      resetSimulation(emptyGrid);
+      resetSimulation({ canvas: canvasRef.current, imageData: imageDataRef.current, grid: emptyGrid });
     } else {
       setInitializationStatus("Initializing WebGPU...");
     }
   }, [mSize, isReady, resetSimulation]);
-
-  // Draw grid whenever it updates
-  useEffect(() => {
-    if (grid) {
-      drawGrid(grid);
-    }
-  }, [grid, drawGrid]);
 
   // Main animation loop using requestAnimationFrame, throttled by animationSpeed
   useEffect(() => {
@@ -218,12 +162,7 @@ export default function Home() {
             await runSimulationStep(currentRules);
           }
           
-          const nextGrid = await readGridData();
-          
-          if (nextGrid) {
-            setGrid(nextGrid);
-          }
-          
+          await drawGridData({ canvas: canvasRef.current, imageData: imageDataRef.current })
           isUpdatingGridRef.current = false;
         }
 
@@ -242,7 +181,7 @@ export default function Home() {
         cancelAnimationFrame(animationFrameId.current);
       }
     };
-  }, [isRunning, isEnabled, animationSpeed, isReady, readGridData, runSimulationStep]); // Removed rulesData from deps
+  }, [isRunning, isEnabled, animationSpeed, isReady, drawGridData, runSimulationStep]); // Removed rulesData from deps
 
   /**
    * Randomizes the grid with a new random pattern and resets simulation.
@@ -251,8 +190,7 @@ export default function Home() {
   const handleRandomize = () => {
     setIsRunning(false);
     const newGrid = initializeGrid(mSize, density);
-    setGrid(newGrid);
-    resetSimulation(newGrid);
+    setTimeout(() => resetSimulation({ canvas: canvasRef.current, imageData: imageDataRef.current, grid: newGrid }), 50);
   };
 
   /**
@@ -262,8 +200,7 @@ export default function Home() {
   const handleClear = () => {
     setIsRunning(false);
     const clearedGrid = new Uint8Array(mSize * mSize);
-    setGrid(clearedGrid);
-    resetSimulation(clearedGrid);
+    setTimeout(() => resetSimulation({ canvas: canvasRef.current, imageData: imageDataRef.current, grid: clearedGrid }), 50);
   };
 
   return (

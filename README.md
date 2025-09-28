@@ -11,7 +11,7 @@ A web-based interactive simulator for cellular automata, accelerated by WebGPU f
 - **Rule Configuration**: Per-mask inputs for Lower/Upper Born (dead cell becomes alive) and Lower/Upper Stable (alive cell survives) neighbor counts. Defaults to Conway's Game of Life for mask n1 (e.g., Born: 3/3, Stable: 2/3).
 - **Simulation Controls**:
   - Start/Stop button to toggle animation loop.
-  - Speed slider (1–60 FPS). Density slider (0-100 %).
+  - Speed slider (1–60 FPS). Density slider (0-100%).
   - Randomize (density of alive cells) or Clear (all dead) the main grid.
   - Dynamic grid sizing based on viewport (e.g., fits container width, odd-sized for symmetry).
 - **Visual Feedback**:
@@ -66,6 +66,7 @@ This project supports complex automata by combining multiple rules (e.g., hybrid
    - Adjust numbers: Lower/Upper Born (e.g., 3/3 for birth on exactly 3 neighbors), Lower/Upper Stable (e.g., 2/3 for survival).
    - Disable to lock; enable others (n2–n4) for multi-rule hybrids.
 4. **Run Simulation** (left panel):
+   - Adjust Density slide (e.g., 15% density).
    - Click "Random" for a starting pattern or "Clear" for empty.
    - Adjust Speed slider (e.g., 30 FPS).
    - Click "Start" to evolve the grid. Watch green cells live/die based on enabled rules.
@@ -75,67 +76,8 @@ This project supports complex automata by combining multiple rules (e.g., hybrid
 ### Key Behaviors
 - **Neighbor Counting**: For each cell, count alive neighbors in valid mask positions (relative offsets). Applies birth/survival if count falls in range.
 - **Multi-Rule Logic**: A cell survives/births if *any* enabled rule matches. No priority—additive for complex automata.
-- **Performance**: GPU handles 200x200 grids at 60 FPS easily; scales with workgroup dispatch (8x8 tiles).
+- **Performance**: GPU handles large grids at 60 FPS easily; scales with workgroup dispatch (8x8 tiles).
 - **Editing Modes**: Masks dim when disabled; main canvas is read-only during sim.
-
-### Component Integration (For Developers)
-The app uses a modular structure. Key entry: `pages/index.tsx` renders the `Home` component with four `Mask` components and WebGPU hook.
-
-#### Main Components
-- **Mask** (`components/Mask.tsx`): Single rule mask editor.
-  ```tsx
-  import Mask from '@/components/Mask';
-  import { Boundaries } from '@/utils/types';
-
-  // Example usage for one mask
-  const [grid, setGrid] = useState<Uint8Array>(new Uint8Array(15 * 15));
-  const [boundaries, setBoundaries] = useState<Boundaries>({ lowerStable: 2, upperStable: 3, lowerBorn: 3, upperBorn: 3 });
-  const [enabled, setEnabled] = useState(true);
-  const size = 15;
-
-  <Mask
-    initialGrid={grid}
-    setGlobalGrid={setGrid}
-    setGlobalBoundaries={setBoundaries}
-    boundaries={boundaries}
-    size={size}
-    enabled={enabled}
-    setEnabled={setEnabled}
-  />
-  ```
-  - **Props** (from `utils/types.ts`):
-    - `initialGrid`: Uint8Array (flattened 0/1 grid).
-    - `setGlobalGrid`: Callback to update parent grid state.
-    - `setGlobalBoundaries` / `boundaries`: For rule thresholds.
-    - `size`: Mask dimension (odd, e.g., 15).
-    - `enabled` / `setEnabled`: Toggle editing.
-  - Manages local drawing state; syncs via callbacks. Validates inputs (0–size²).
-
-- **useWebGPUSimulation** (`utils/useWebGPUSimulation.ts`): Custom hook for GPU sim.
-  ```tsx
-  import { useWebGPUSimulation } from '@/utils/useWebGPUSimulation';
-  import { RulesData } from '@/utils/types';
-
-  const mSize = 200; // Main grid size
-  const nSize = 15; // Mask size
-  const { runSimulationStep, readGridData, resetSimulation, isReady } = useWebGPUSimulation(mSize, nSize);
-
-  // In animation loop:
-  const rulesData: RulesData = { /* grids, boundaries, enables */ };
-  await runSimulationStep(rulesData);
-  const nextGrid = await readGridData(); // Uint8Array
-  ```
-  - Initializes device/pipeline/buffers on mount.
-  - `runSimulationStep(rulesData)`: Dispatches one generation (async, updates buffers).
-  - `readGridData()`: Reads output to CPU (Uint8Array).
-  - `resetSimulation(initialGrid)`: Sets initial state.
-  - `isReady`: Boolean for WebGPU status.
-  - Handles cleanup; supports live rule updates.
-
-- **Home** (`pages/index.tsx`): Orchestrates canvas rendering (ImageData for perf), animation loop (requestAnimationFrame with FPS throttle), responsive layout, and state for four masks.
-
-#### Types (`utils/types.ts`)
-Defines `Boundaries` (rule ranges), `RulesData` (multi-rule payload for GPU), `Props` (for Mask), `WebGPURefs` (internal GPU state).
 
 ### Extending the Project
 - **Add Rules**: Extend shader/uniforms for >4 masks; update `RulesData`.

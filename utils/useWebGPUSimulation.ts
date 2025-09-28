@@ -1,4 +1,4 @@
-import { RulesData, WebGPURefs } from '@/utils/types';
+import { DrawSimulationProps, DrawGridDataProps, RulesData, WebGPURefs } from '@/utils/types';
 import { useRef, useEffect, useCallback, useState } from 'react';
 
 /**
@@ -118,7 +118,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
  *
  * @param mSize - Size of the square grid (e.g., 256 for 256x256).
  * @param nSize - Size of the neighborhood rule grid (e.g., 3 for Moore neighborhood).
- * @returns Object with methods: runSimulationStep, readGridData, resetSimulation, and isReady flag.
+ * @returns Object with methods: runSimulationStep, drawGridData, resetSimulation, and isReady flag.
  */
 export function useWebGPUSimulation(mSize: number, nSize: number) {
     // Refs to hold WebGPU objects and state, persisting across renders
@@ -279,15 +279,17 @@ export function useWebGPUSimulation(mSize: number, nSize: number) {
     }, [mSize, nSize, isReady]);
 
     /**
-     * Reads the current grid state back to CPU as Uint8Array (0/1 per cell, flattened).
+     * Reads the current grid state to Uint8Array (0/1 per cell, flattened), and calls `drawSimulation` to draw it to the canvas.
      * Copies from the output buffer (based on frameNum parity) to staging buffer and maps it.
      * Unmaps staging buffer after reading.
      *
+     * @param canvas - The HTMLCanvasElement, used in `drawSimulation`.
+     * @param imageData - The ImageData, used in `drawSimulation`
      * @returns Promise<Uint8Array | null> - Flattened grid data or null on error.
      */
-    const readGridData = useCallback(async (): Promise<Uint8Array | null> => {
+    const drawGridData = useCallback(async ({ canvas, imageData }: DrawGridDataProps): Promise<void> => {
         const { device, stagingBuffer, gridBufferA, gridBufferB, isDestroying } = refs.current;
-        if (!isReady || isDestroying || !device || !stagingBuffer || !gridBufferA || !gridBufferB) return null;
+        if (!isReady || isDestroying || !device || !stagingBuffer || !gridBufferA || !gridBufferB) return;
 
         try {
             const gridSizeInBytes = mSize * mSize * Uint32Array.BYTES_PER_ELEMENT;
@@ -304,12 +306,13 @@ export function useWebGPUSimulation(mSize: number, nSize: number) {
             const copyArrayBuffer = stagingBuffer.getMappedRange(0, gridSizeInBytes);
             const data = new Uint32Array(copyArrayBuffer.slice(0));
             stagingBuffer.unmap();
-
-            // Convert to Uint8Array (assuming 0/1 values fit)
-            return new Uint8Array(data);
+            
+            const grid = new Uint8Array(data);
+            drawSimulation({ canvas, imageData, grid });
+            return;
         } catch (e) {
             console.error("Error reading grid data:", e);
-            return null;
+            return;
         }
     }, [mSize, isReady]);
 
@@ -317,18 +320,68 @@ export function useWebGPUSimulation(mSize: number, nSize: number) {
      * Resets both grid buffers to the provided initial state (Uint8Array, flattened 0/1).
      * Converts to Uint32Array for buffer write and resets frame counter.
      *
+     * @param canvas - The HTMLCanvasElement, used in `drawSimulation`.
+     * @param imageData - The ImageData, used in `drawSimulation`.
      * @param newGrid - Initial grid state as flattened Uint8Array (mSize * mSize elements).
      */
-    const resetSimulation = useCallback(async (newGrid: Uint8Array) => {
+    const resetSimulation = useCallback(async ({ canvas, imageData, grid }: DrawSimulationProps) => {
         const { device, gridBufferA, gridBufferB, isDestroying } = refs.current;
         if (!isReady || isDestroying || !device || !gridBufferA || !gridBufferB) return;
         
+        drawSimulation({ canvas, imageData, grid })
         // Convert input to Uint32 for buffer compatibility
-        const gridData = new Uint32Array(newGrid);
+        const gridData = new Uint32Array(grid);
         device.queue.writeBuffer(gridBufferA, 0, gridData);
         device.queue.writeBuffer(gridBufferB, 0, gridData);
         frameNum.current = 0; // Reset frame counter
     }, [isReady]);
 
-    return { runSimulationStep, readGridData, resetSimulation, isReady };
+    /**
+     * Renders the grid to the canvas using ImageData for performance.
+     * Each cell is a 1x1 pixel block colored green for alive, black for dead.
+     * 
+     * @param canvas - The HTMLCanvasElement.
+     * @param imageData - The ImageData, which is created from the canvas context, and used to draw.
+     * @param grid - The grid data, which shows which cells are alive/dead.
+     */
+    const drawSimulation = useCallback(({ canvas, imageData, grid }: DrawSimulationProps): void => {
+        const ctx = canvas?.getContext('2d', { alpha: false });
+        if (!canvas || !ctx) return;
+
+        const cellSize = 1;
+        const sideLen = mSize * cellSize;
+
+        if (canvas.width !== sideLen || canvas.height !== sideLen) {
+            canvas.width = sideLen;
+            canvas.height = sideLen;
+            imageData = ctx.createImageData(sideLen, sideLen);
+        } else if (!imageData) {
+            imageData = ctx.createImageData(sideLen, sideLen);
+        }
+
+        const data = imageData.data;
+        const aliveColor = { r: 132, g: 204, b: 22 }; // Green color for alive cells
+        const deadColor = { r: 0, g: 0, b: 0 }; // Black for dead cells
+
+        for (let i = 0; i < grid.length; i++) {
+            const isAlive = grid[i] === 1;
+            const color = isAlive ? aliveColor : deadColor;
+            const x = (i % mSize) * cellSize;
+            const y = Math.floor(i / mSize) * cellSize;
+
+            for (let row = 0; row < cellSize; row++) {
+                for (let col = 0; col < cellSize; col++) {
+                    const pixelIndex = ((y + row) * sideLen + (x + col)) * 4;
+                    data[pixelIndex] = color.r;
+                    data[pixelIndex + 1] = color.g;
+                    data[pixelIndex + 2] = color.b;
+                    data[pixelIndex + 3] = 255;
+                }
+            }
+        }
+        
+        ctx.putImageData(imageData, 0, 0);
+    }, [mSize])
+
+    return { runSimulationStep, drawGridData, resetSimulation, isReady };
 }

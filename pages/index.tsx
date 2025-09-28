@@ -51,6 +51,7 @@ export default function Home() {
   // Custom hook for WebGPU-based simulation
   const { runSimulationStep, drawGridData, resetSimulation, isReady } = useWebGPUSimulation(mSize, nSize);
   const isRunningRef = useRef(isRunning); // Ref to track running state without re-renders
+  const animationSpeedRef = useRef(animationSpeed); // Ref to track animation speed
 
   // Sync running state to ref
   useEffect(() => {
@@ -122,7 +123,7 @@ export default function Home() {
       const containerWidth = containerRef.current.offsetWidth;
       const cellSize = 1;
       const newSize = Math.floor(containerWidth / cellSize);
-      const validMSize = newSize % 2 === 0 ? newSize - 1 : newSize; // Ensure odd size for symmetry?
+      const validMSize = newSize % 2 === 0 ? newSize - 1 : newSize; // Ensure odd size for symmetry
       setMSize(validMSize);
     };
     calculateGridSize();
@@ -141,15 +142,18 @@ export default function Home() {
     }
   }, [mSize, isReady, resetSimulation]);
 
+  useEffect(() => {
+    animationSpeedRef.current = animationSpeed;
+  }, [animationSpeed]);
+
   // Main animation loop using requestAnimationFrame, throttled by animationSpeed
   useEffect(() => {
     if (isRunning && isReady && isEnabled) {
-      const frameInterval = 1000 / animationSpeed; // ms per frame based on FPS
-      
       const animate = async (timestamp: number) => {
         if (!isRunningRef.current) {
           return;
         }
+        const frameInterval = 1000 / animationSpeedRef.current; // ms per frame based on FPS
 
         // Throttle updates to target FPS
         if (!isUpdatingGridRef.current && timestamp - lastUpdateTimeRef.current >= frameInterval) {
@@ -162,7 +166,7 @@ export default function Home() {
             await runSimulationStep(currentRules);
           }
           
-          await drawGridData({ canvas: canvasRef.current, imageData: imageDataRef.current })
+          await drawGridData({ canvas: canvasRef.current, imageData: imageDataRef.current });
           isUpdatingGridRef.current = false;
         }
 
@@ -181,7 +185,7 @@ export default function Home() {
         cancelAnimationFrame(animationFrameId.current);
       }
     };
-  }, [isRunning, isEnabled, animationSpeed, isReady, drawGridData, runSimulationStep]); // Removed rulesData from deps
+  }, [isRunning, isEnabled, isReady, drawGridData, runSimulationStep]);
 
   /**
    * Randomizes the grid with a new random pattern and resets simulation.

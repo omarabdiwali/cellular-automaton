@@ -9,7 +9,7 @@ import { Boundaries, RulesData } from "@/utils/types";
  */
 export default function Home() {
   // Grid dimensions and sizing
-  const mSize = 15; // Size for rule masks (small grid for controls)
+  const nSize = 15; // Size for rule masks (small grid for controls)
   const [mSize, setMSize] = useState(200); // Dynamic size for main simulation grid, adjusts to container width
   
   // Refs for DOM elements and performance tracking
@@ -22,7 +22,7 @@ export default function Home() {
   
   const animationFrameId = useRef<number | null>(null); // ID for requestAnimationFrame loop
 
-  /**
+    /**
    * Initializes a small grid with Conway's Game of Life starting pattern (a 3x3 square).
    * @param size - The side length of the square grid
    * @returns Uint8Array with the pattern in the center
@@ -38,24 +38,24 @@ export default function Home() {
     return grid;
   };
 
-  // Rule states for four different masks (m1 to m4)
-  // m1 is initialized with Conway's Game of Life pattern
-  const [m1, setM1] = useState<Uint8Array>(() => initializeConways(mSize));
-  const [m2, setM2] = useState<Uint8Array>(() => new Uint8Array(mSize * mSize));
-  const [m3, setM3] = useState<Uint8Array>(() => new Uint8Array(mSize * mSize));
-  const [m4, setM4] = useState<Uint8Array>(() => new Uint8Array(mSize * mSize));
+  // Rule states for four different masks (n1 to n4)
+  // n1 is initialized with Conway's Game of Life pattern
+  const [n1, setN1] = useState<Uint8Array>(() => initializeConways(nSize));
+  const [n2, setN2] = useState<Uint8Array>(() => new Uint8Array(nSize * nSize));
+  const [n3, setN3] = useState<Uint8Array>(() => new Uint8Array(nSize * nSize));
+  const [n4, setN4] = useState<Uint8Array>(() => new Uint8Array(nSize * nSize));
   
   // Boundaries for birth and survival rules for each mask
-  const [m1Boundaries, setM1Boundaries] = useState<Boundaries>({ lowerStable: 2, upperStable: 3, lowerBorn: 3, upperBorn: 3 });
-  const [m2Boundaries, setM2Boundaries] = useState<Boundaries>({ lowerStable: 0, upperStable: 0, lowerBorn: 0, upperBorn: 0 });
-  const [m3Boundaries, setM3Boundaries] = useState<Boundaries>({ lowerStable: 0, upperStable: 0, lowerBorn: 0, upperBorn: 0 });
-  const [m4Boundaries, setM4Boundaries] = useState<Boundaries>({ lowerStable: 0, upperStable: 0, lowerBorn: 0, upperBorn: 0 });
+  const [n1Boundaries, setN1Boundaries] = useState<Boundaries>({ lowerStable: 2, upperStable: 3, lowerBorn: 3, upperBorn: 3 });
+  const [n2Boundaries, setN2Boundaries] = useState<Boundaries>({ lowerStable: 0, upperStable: 0, lowerBorn: 0, upperBorn: 0 });
+  const [n3Boundaries, setN3Boundaries] = useState<Boundaries>({ lowerStable: 0, upperStable: 0, lowerBorn: 0, upperBorn: 0 });
+  const [n4Boundaries, setN4Boundaries] = useState<Boundaries>({ lowerStable: 0, upperStable: 0, lowerBorn: 0, upperBorn: 0 });
   
   // Enable/disable flags for each mask
-  const [m1Enabled, setM1Enabled] = useState(true);
-  const [m2Enabled, setM2Enabled] = useState(false);
-  const [m3Enabled, setM3Enabled] = useState(false);
-  const [m4Enabled, setM4Enabled] = useState(false);
+  const [n1Enabled, setN1Enabled] = useState(true);
+  const [n2Enabled, setN2Enabled] = useState(false);
+  const [n3Enabled, setN3Enabled] = useState(false);
+  const [n4Enabled, setN4Enabled] = useState(false);
 
   // Simulation controls
   const [isRunning, setIsRunning] = useState(false); // Toggle for starting/stopping animation
@@ -65,7 +65,7 @@ export default function Home() {
   const [initializationStatus, setInitializationStatus] = useState("Initializing WebGPU..."); // Status for loading
 
   // Custom hook for WebGPU-based simulation
-  const { runSimulationStep, drawGridData, resetSimulation, isReady } = useWebGPUSimulation(mSize, mSize);
+  const { runSimulationStep, drawGridData, resetSimulation, isReady } = useWebGPUSimulation(mSize, nSize);
   const isRunningRef = useRef(isRunning); // Ref to track running state without re-renders
   const animationSpeedRef = useRef(animationSpeed); // Ref to track animation speed
 
@@ -79,10 +79,10 @@ export default function Home() {
 
   // Memoized rules data object passed to simulation
   const rulesData = useMemo(() => ({
-    m1, m2, m3, m4,
-    b1: m1Boundaries, b2: m2Boundaries, b3: m3Boundaries, b4: m4Boundaries,
-    e1: m1Enabled ? 1 : 0, e2: m2Enabled ? 1 : 0, e3: m3Enabled ? 1 : 0, e4: m4Enabled ? 1 : 0,
-  }), [m1, m2, m3, m4, m1Boundaries, m2Boundaries, m3Boundaries, m4Boundaries, m1Enabled, m2Enabled, m3Enabled, m4Enabled]);
+    n1, n2, n3, n4,
+    b1: n1Boundaries, b2: n2Boundaries, b3: n3Boundaries, b4: n4Boundaries,
+    e1: n1Enabled ? 1 : 0, e2: n2Enabled ? 1 : 0, e3: n3Enabled ? 1 : 0, e4: n4Enabled ? 1 : 0,
+  }), [n1, n2, n3, n4, n1Boundaries, n2Boundaries, n3Boundaries, n4Boundaries, n1Enabled, n2Enabled, n3Enabled, n4Enabled]);
 
   // Update the ref whenever rulesData changes (enables live updates without restarting animation)
   useEffect(() => {
@@ -91,8 +91,8 @@ export default function Home() {
 
   // Auto-pause when all masks are disabled (stops the loop to save resources and feel truly "paused")
   useEffect(() => {
-    setIsEnabled(m1Enabled || m2Enabled || m3Enabled || m4Enabled);
-  }, [m1Enabled, m2Enabled, m3Enabled, m4Enabled]);
+    setIsEnabled(n1Enabled || n2Enabled || n3Enabled || n4Enabled);
+  }, [n1Enabled, n2Enabled, n3Enabled, n4Enabled]);
 
   /**
    * Initializes a random grid with a specified density (0 to 1).
@@ -120,7 +120,6 @@ export default function Home() {
   useEffect(() => {
     const calculateGridSize = () => {
       if (!containerRef.current) return;
-      setIsRunning(false);
       const containerWidth = containerRef.current.offsetWidth;
       const cellSize = 1;
       const newSize = Math.floor(containerWidth / cellSize);
@@ -268,42 +267,42 @@ export default function Home() {
       <div className={`flex flex-col ${isMobileLayout ? 'w-full px-5' : 'w-max px-5'} gap-5`}>
         <div className="flex flex-row gap-5">
           <Mask
-            initialGrid={m1}
-            setGlobalGrid={setM1}
-            setGlobalBoundaries={setM1Boundaries}
-            boundaries={m1Boundaries}
-            size={mSize}
-            enabled={m1Enabled}
-            setEnabled={setM1Enabled}
+            initialGrid={n1}
+            setGlobalGrid={setN1}
+            setGlobalBoundaries={setN1Boundaries}
+            boundaries={n1Boundaries}
+            size={nSize}
+            enabled={n1Enabled}
+            setEnabled={setN1Enabled}
           />
           <Mask
-            initialGrid={m2}
-            setGlobalGrid={setM2}
-            setGlobalBoundaries={setM2Boundaries}
-            boundaries={m2Boundaries}
-            size={mSize}
-            enabled={m2Enabled}
-            setEnabled={setM2Enabled}
+            initialGrid={n2}
+            setGlobalGrid={setN2}
+            setGlobalBoundaries={setN2Boundaries}
+            boundaries={n2Boundaries}
+            size={nSize}
+            enabled={n2Enabled}
+            setEnabled={setN2Enabled}
           />
         </div>
         <div className="flex flex-row gap-5">
           <Mask
-            initialGrid={m3}
-            setGlobalGrid={setM3}
-            setGlobalBoundaries={setM3Boundaries}
-            boundaries={m3Boundaries}
-            size={mSize}
-            enabled={m3Enabled}
-            setEnabled={setM3Enabled}
+            initialGrid={n3}
+            setGlobalGrid={setN3}
+            setGlobalBoundaries={setN3Boundaries}
+            boundaries={n3Boundaries}
+            size={nSize}
+            enabled={n3Enabled}
+            setEnabled={setN3Enabled}
           />
           <Mask
-            initialGrid={m4}
-            setGlobalGrid={setM4}
-            setGlobalBoundaries={setM4Boundaries}
-            boundaries={m4Boundaries}
-            size={mSize}
-            enabled={m4Enabled}
-            setEnabled={setM4Enabled}
+            initialGrid={n4}
+            setGlobalGrid={setN4}
+            setGlobalBoundaries={setN4Boundaries}
+            boundaries={n4Boundaries}
+            size={nSize}
+            enabled={n4Enabled}
+            setEnabled={setN4Enabled}
           />
         </div>
       </div>

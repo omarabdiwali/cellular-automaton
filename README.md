@@ -6,9 +6,9 @@ A web-based interactive simulator for cellular automata, accelerated by WebGPU f
 ## Features
 
 - **High-Performance WebGPU Simulation**: Runs cellular automata on the GPU using WGSL shaders. Supports toroidal (periodic) boundary conditions, multiple overlapping rule sets (up to 4), and large grids (e.g. 200x200 dynamically sized). Ping-pong buffering for efficient double-buffered computation.
-- **Multiple Rule Masks**: Four independent 15x15 (configurable) grids (m1–m4) for defining neighborhood rules. Each mask represents valid neighbor positions (alive cells in blue) for counting. Central red cell is the focal point (excluded from counting). Toggle enable/disable per mask.
+- **Multiple Rule Masks**: Four independent 15x15 (configurable) grids (n1–n4) for defining neighborhood rules. Each mask represents valid neighbor positions (alive cells in blue) for counting. Central red cell is the focal point (excluded from counting). Toggle enable/disable per mask.
 - **Interactive Grid Editor**: Click and drag on small mask grids to add (blue) or delete (gray) cells. Add/Delete mode buttons and Clear Grid functionality. Rules apply in real-time during simulation if a mask is enabled.
-- **Rule Configuration**: Per-mask inputs for Lower/Upper Born (dead cell becomes alive) and Lower/Upper Stable (alive cell survives) neighbor counts. Defaults to Conway's Game of Life for mask m1 (e.g. Born: 3/3, Stable: 2/3).
+- **Rule Configuration**: Per-mask inputs for Lower/Upper Born (dead cell becomes alive) and Lower/Upper Stable (alive cell survives) neighbor counts. Defaults to Conway's Game of Life for mask n1 (e.g. Born: 3/3, Stable: 2/3).
 - **Simulation Controls**:
   - Start/Stop button to toggle animation loop.
   - Speed slider (1–60 FPS). Density slider (0-100%).
@@ -61,17 +61,17 @@ This project supports complex automata by combining multiple rules (e.g. hybrid 
 1. Open the app in a WebGPU-supported browser.
 2. Wait for "Ready" status (WebGPU initializes automatically).
 3. **Configure Rules** (right panel):
-   - Enable a mask (e.g. m1, default Conway's) by clicking "Enable Mask".
+   - Enable a mask (e.g. n1, default Conway's) by clicking "Enable Mask".
    - Use Add/Delete to draw alive positions (blue squares) on the 15x15 grid. Avoid the red center.
    - Adjust numbers: Lower/Upper Born (e.g. 3/3 for birth on exactly 3 neighbors), Lower/Upper Stable (e.g. 2/3 for survival).
-   - Disable to lock; enable others (m2–m4) for multi-rule hybrids.
+   - Disable to lock; enable others (n2–n4) for multi-rule hybrids.
 4. **Run Simulation** (left panel):
    - Adjust Density slide (e.g. 15% density).
    - Click "Random" for a starting pattern or "Clear" for empty.
    - Adjust Speed slider (e.g. 30 FPS).
    - Click "Start" to evolve the grid. Watch green cells live/die based on enabled rules.
    - "Stop" pauses; grid size auto-adjusts on resize.
-5. **Experiment**: Combine rules (e.g. m1=Life, m2=custom pattern) for emergent behaviors. Changes to masks apply live without restart.
+5. **Experiment**: Combine rules (e.g. n1=Life, n2=custom pattern) for emergent behaviors. Changes to masks apply live without restart.
 
 ### Key Behaviors
 - **Neighbor Counting**: For each cell, count alive neighbors in valid mask positions (relative offsets). Applies birth/survival if count falls in range.

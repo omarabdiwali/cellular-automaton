@@ -34,10 +34,10 @@ export interface Props {
 }
 
 export interface RulesData {
-  m1: Uint8Array; 
-  m2: Uint8Array; 
-  m3: Uint8Array; 
-  m4: Uint8Array;
+  n1: Uint8Array; 
+  n2: Uint8Array; 
+  n3: Uint8Array; 
+  n4: Uint8Array;
   b1: Boundaries;
   b2: Boundaries;
   b3: Boundaries;

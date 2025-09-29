@@ -6,12 +6,12 @@ import { useRef, useEffect, useCallback, useState } from 'react';
  * This compute shader processes a grid using multiple rule sets (up to 4 enabled rules).
  * It counts valid neighbors based on rule masks for birth/survival conditions and applies them.
  * Supports toroidal wrapping (periodic boundary conditions) for the grid.
- * Neighborhood size is configurable via nSize (odd number, e.g. 3 for Moore neighborhood).
+ * Neighborhood size is configurable via mSize (odd number, e.g. 3 for Moore neighborhood).
  */
 const shaderCode = `
 struct Params {
     mSize: u32,
-    nSize: u32,
+    mSize: u32,
     
     lowerStable1: u32, upperStable1: u32, lowerBorn1: u32, upperBorn1: u32, enabled1: u32,
     lowerStable2: u32, upperStable2: u32, lowerBorn2: u32, upperBorn2: u32, enabled2: u32,
@@ -34,8 +34,8 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
         return;
     }
 
-    let nSize = params.nSize;
-    let radius = nSize / 2u;
+    let mSize = params.mSize;
+    let radius = mSize / 2u;
     let flat_index = global_id.y * mSize + global_id.x;
     let currentState = gridIn[flat_index];
 
@@ -60,7 +60,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
             if (gridIn[neighbor_flat_index] == 1u) {
                 let ruleY = u32(dy + i32(radius));
                 let ruleX = u32(dx + i32(radius));
-                let rule_flat_index = ruleY * nSize + ruleX;
+                let rule_flat_index = ruleY * mSize + ruleX;
                 
                 if (params.enabled1 == 1u && rules1[rule_flat_index] == 1u) { validNeighbors1 = validNeighbors1 + 1u; }
                 if (params.enabled2 == 1u && rules2[rule_flat_index] == 1u) { validNeighbors2 = validNeighbors2 + 1u; }
@@ -114,13 +114,13 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
  * Custom React hook for managing WebGPU-based cellular automaton simulation.
  * Initializes WebGPU resources, runs simulation steps with multiple rule sets,
  * reads the resulting grid, and handles reset. Supports square grids of size mSize x mSize
- * with configurable neighborhood size nSize (must be odd).
+ * with configurable neighborhood size mSize (must be odd).
  *
  * @param mSize - Size of the square grid (e.g. 256 for 256x256).
- * @param nSize - Size of the neighborhood rule grid (e.g. 3 for Moore neighborhood).
+ * @param mSize - Size of the neighborhood rule grid (e.g. 3 for Moore neighborhood).
  * @returns Object with methods: runSimulationStep, drawGridData, resetSimulation, and isReady flag.
  */
-export function useWebGPUSimulation(mSize: number, nSize: number) {
+export function useWebGPUSimulation(mSize: number, mSize: number) {
     // Refs to hold WebGPU objects and state, persisting across renders
     const refs = useRef<WebGPURefs>({
         device: null, pipeline: null, gridBufferA: null, gridBufferB: null,
@@ -136,7 +136,7 @@ export function useWebGPUSimulation(mSize: number, nSize: number) {
 
     /**
      * Initializes WebGPU resources: adapter, device, buffers, pipeline, and bind groups.
-     * Called once on mount or when mSize/nSize changes.
+     * Called once on mount or when mSize/mSize changes.
      * Handles unsupported browser cases and sets isReady accordingly.
      */
     const init = useCallback(async () => {
@@ -156,7 +156,7 @@ export function useWebGPUSimulation(mSize: number, nSize: number) {
         
         // Calculate buffer sizes based on grid dimensions
         const gridSize = mSize * mSize;
-        const ruleGridSize = nSize * nSize;
+        const ruleGridSize = mSize * mSize;
         
         // Create shader module from the WGSL code
         const shaderModule = device.createShaderModule({ code: shaderCode });
@@ -202,7 +202,7 @@ export function useWebGPUSimulation(mSize: number, nSize: number) {
         refs.current.bindGroupB = device.createBindGroup({ layout: bindGroupLayout, entries: commonEntries(refs.current.gridBufferB!, refs.current.gridBufferA!) });
         
         setIsReady(true);
-    }, [mSize, nSize]);
+    }, [mSize, mSize]);
 
     // Effect to initialize on mount or dependency change, and clean up on unmount
     useEffect(() => {
@@ -246,14 +246,14 @@ export function useWebGPUSimulation(mSize: number, nSize: number) {
 
         try {
             // Write rule grids to GPU buffers (flattened Uint32Arrays)
-            device.queue.writeBuffer(rulesBuffer1!, 0, new Uint32Array(rulesData.n1));
-            device.queue.writeBuffer(rulesBuffer2!, 0, new Uint32Array(rulesData.n2));
-            device.queue.writeBuffer(rulesBuffer3!, 0, new Uint32Array(rulesData.n3));
-            device.queue.writeBuffer(rulesBuffer4!, 0, new Uint32Array(rulesData.n4));
+            device.queue.writeBuffer(rulesBuffer1!, 0, new Uint32Array(rulesData.m1));
+            device.queue.writeBuffer(rulesBuffer2!, 0, new Uint32Array(rulesData.m2));
+            device.queue.writeBuffer(rulesBuffer3!, 0, new Uint32Array(rulesData.m3));
+            device.queue.writeBuffer(rulesBuffer4!, 0, new Uint32Array(rulesData.m4));
 
             // Pack parameters into uniform buffer: sizes + 4 rule sets (lower/upper stable/born + enable)
             const paramsArray = new Uint32Array([
-                mSize, nSize,
+                mSize, mSize,
                 rulesData.b1.lowerStable, rulesData.b1.upperStable, rulesData.b1.lowerBorn, rulesData.b1.upperBorn, rulesData.e1,
                 rulesData.b2.lowerStable, rulesData.b2.upperStable, rulesData.b2.lowerBorn, rulesData.b2.upperBorn, rulesData.e2,
                 rulesData.b3.lowerStable, rulesData.b3.upperStable, rulesData.b3.lowerBorn, rulesData.b3.upperBorn, rulesData.e3,
@@ -276,7 +276,7 @@ export function useWebGPUSimulation(mSize: number, nSize: number) {
 
             frameNum.current++;
         } catch (e) { console.error("Error during simulation step:", e); }
-    }, [mSize, nSize, isReady]);
+    }, [mSize, mSize, isReady]);
 
     /**
      * Reads the current grid state to Uint8Array (0/1 per cell, flattened), and calls `drawSimulation` to draw it to the canvas.

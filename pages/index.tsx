@@ -120,6 +120,7 @@ export default function Home() {
   useEffect(() => {
     const calculateGridSize = () => {
       if (!containerRef.current) return;
+      setIsRunning(false);
       const containerWidth = containerRef.current.offsetWidth;
       const cellSize = 1;
       const newSize = Math.floor(containerWidth / cellSize);

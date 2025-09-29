@@ -5,15 +5,15 @@ A web-based interactive simulator for cellular automata, accelerated by WebGPU f
 
 ## Features
 
-- **High-Performance WebGPU Simulation**: Runs cellular automata on the GPU using WGSL shaders. Supports toroidal (periodic) boundary conditions, multiple overlapping rule sets (up to 4), and large grids (e.g., 200x200 dynamically sized). Ping-pong buffering for efficient double-buffered computation.
+- **High-Performance WebGPU Simulation**: Runs cellular automata on the GPU using WGSL shaders. Supports toroidal (periodic) boundary conditions, multiple overlapping rule sets (up to 4), and large grids (e.g. 200x200 dynamically sized). Ping-pong buffering for efficient double-buffered computation.
 - **Multiple Rule Masks**: Four independent 15x15 (configurable) grids (n1–n4) for defining neighborhood rules. Each mask represents valid neighbor positions (alive cells in blue) for counting. Central red cell is the focal point (excluded from counting). Toggle enable/disable per mask.
 - **Interactive Grid Editor**: Click and drag on small mask grids to add (blue) or delete (gray) cells. Add/Delete mode buttons and Clear Grid functionality. Rules apply in real-time during simulation if a mask is enabled.
-- **Rule Configuration**: Per-mask inputs for Lower/Upper Born (dead cell becomes alive) and Lower/Upper Stable (alive cell survives) neighbor counts. Defaults to Conway's Game of Life for mask n1 (e.g., Born: 3/3, Stable: 2/3).
+- **Rule Configuration**: Per-mask inputs for Lower/Upper Born (dead cell becomes alive) and Lower/Upper Stable (alive cell survives) neighbor counts. Defaults to Conway's Game of Life for mask n1 (e.g. Born: 3/3, Stable: 2/3).
 - **Simulation Controls**:
   - Start/Stop button to toggle animation loop.
   - Speed slider (1–60 FPS). Density slider (0-100%).
   - Randomize (density of alive cells) or Clear (all dead) the main grid.
-  - Dynamic grid sizing based on viewport (e.g., fits container width, odd-sized for symmetry).
+  - Dynamic grid sizing based on viewport (e.g. fits container width, odd-sized for symmetry).
 - **Visual Feedback**:
   - Main simulation: Green pixels for alive cells, black for dead on a canvas.
   - Masks: Blue for active rule positions, gray for inactive, red for focal center.
@@ -22,7 +22,7 @@ A web-based interactive simulator for cellular automata, accelerated by WebGPU f
 - **Accessibility & UX**: Read-only inputs when masks disabled; keyboard navigation; loading overlay for WebGPU init.
 - **Extensible Design**: Core logic in custom hooks (`useWebGPUSimulation`) and components (`Mask`). Easy to add more rules, patterns, or export functionality.
 
-This project supports complex automata by combining multiple rules (e.g., hybrid Life + other patterns) and scales to large grids without CPU bottlenecks.
+This project supports complex automata by combining multiple rules (e.g. hybrid Life + other patterns) and scales to large grids without CPU bottlenecks.
 
 **Browser Support**: Requires WebGPU (Chrome 113+, Edge 113+, Firefox 125+ with flags). Falls back gracefully with error messages.
 
@@ -58,20 +58,20 @@ This project supports complex automata by combining multiple rules (e.g., hybrid
 ## Usage
 
 ### Quick Start
-1. Open the app in a WebGPU-supported browser (e.g., Chrome Canary/Dev).
+1. Open the app in a WebGPU-supported browser.
 2. Wait for "Ready" status (WebGPU initializes automatically).
 3. **Configure Rules** (right panel):
-   - Enable a mask (e.g., n1, default Conway's) by clicking "Enable Neighbour".
+   - Enable a mask (e.g. n1, default Conway's) by clicking "Enable Mask".
    - Use Add/Delete to draw alive positions (blue squares) on the 15x15 grid. Avoid the red center.
-   - Adjust numbers: Lower/Upper Born (e.g., 3/3 for birth on exactly 3 neighbors), Lower/Upper Stable (e.g., 2/3 for survival).
+   - Adjust numbers: Lower/Upper Born (e.g. 3/3 for birth on exactly 3 neighbors), Lower/Upper Stable (e.g. 2/3 for survival).
    - Disable to lock; enable others (n2–n4) for multi-rule hybrids.
 4. **Run Simulation** (left panel):
-   - Adjust Density slide (e.g., 15% density).
+   - Adjust Density slide (e.g. 15% density).
    - Click "Random" for a starting pattern or "Clear" for empty.
-   - Adjust Speed slider (e.g., 30 FPS).
+   - Adjust Speed slider (e.g. 30 FPS).
    - Click "Start" to evolve the grid. Watch green cells live/die based on enabled rules.
    - "Stop" pauses; grid size auto-adjusts on resize.
-5. **Experiment**: Combine rules (e.g., n1=Life, n2=custom pattern) for emergent behaviors. Changes to masks apply live without restart.
+5. **Experiment**: Combine rules (e.g. n1=Life, n2=custom pattern) for emergent behaviors. Changes to masks apply live without restart.
 
 ### Key Behaviors
 - **Neighbor Counting**: For each cell, count alive neighbors in valid mask positions (relative offsets). Applies birth/survival if count falls in range.
@@ -81,21 +81,20 @@ This project supports complex automata by combining multiple rules (e.g., hybrid
 
 ### Extending the Project
 - **Add Rules**: Extend shader/uniforms for >4 masks; update `RulesData`.
-- **Patterns Library**: Preload famous automata (e.g., Wireworld) via buttons that set grids/boundaries.
+- **Patterns Library**: Preload famous automata (e.g. Wireworld) via buttons that set grids/boundaries.
 - **Export/Import**: Save masks to JSON/localStorage; step-by-step generation export (GIF/video).
 - **Custom Shaders**: Modify WGSL for non-Moor-like neighborhoods or multi-state cells.
 - **CPU Fallback**: Add JS sim for non-WebGPU browsers.
-- **Styling**: Tailwind-based; customize colors (e.g., multi-color cells) or add zoom/pan to canvas.
+- **Styling**: Tailwind-based; customize colors (e.g. multi-color cells) or add zoom/pan to canvas.
 - **Testing**: Add unit tests for hook (mock WebGPU) and integration for Mask interactions.
 
 ## Technologies Used
 
-- **Frontend**: React (with TypeScript for type safety), Next.js (pages router assumed).
+- **Frontend**: React (with TypeScript for type safety), Next.js.
 - **Compute**: WebGPU (WGSL shaders for parallel grid processing).
 - **Rendering**: HTML5 Canvas (ImageData for pixel-efficient drawing).
 - **Styling**: Tailwind CSS (responsive, utility-first).
-- **Build Tools**: Vite or Create React App (adjust per setup); Webpack for bundling.
-- **Other**: Custom hooks for state/sim management; no external UI libs (vanilla React).
+- **Other**: Custom hooks for state/sim management; no external UI libs.
 
 ## Project Structure
 
@@ -109,11 +108,11 @@ cellular-automaton/
 │   ├── useWebGPUSimulation.ts  # WebGPU hook
 │   └── types.ts          # Interfaces (Boundaries, RulesData, etc.)
 ├── public/                   # Static assets
-├── package.json              # Dependencies (react, tailwindcss, typescript, @types/webgpu-experimental)
-└── README.md                 # This file
+├── package.json              # Dependencies (react, tailwindcss, typescript, @webgpu/types)
+└── README.md
 ```
 
-Note: Enable WebGPU in browsers if needed (e.g., chrome://flags/#enable-unsafe-webgpu).
+Note: Enable WebGPU in browsers if needed (e.g. chrome://flags/#enable-unsafe-webgpu).
 
 ## Contributing
 
@@ -123,10 +122,10 @@ Note: Enable WebGPU in browsers if needed (e.g., chrome://flags/#enable-unsafe-w
 4. Push to the branch (`git push origin feature/amazing-feature`).
 5. Open a Pull Request.
 
-Bug reports (e.g., WebGPU errors, mobile issues) and feature requests (e.g., more rules) are welcome! Include browser/version, steps to reproduce, and screenshots.
+Bug reports (e.g. WebGPU errors, mobile issues) and feature requests (e.g. more rules) are welcome! Include browser/version, steps to reproduce, and screenshots.
 
 ## Acknowledgments
 
-- Inspired by [Acerola](https://www.youtube.com/watch?v=I1JBiZrZ_XM), Conway's Game of Life, and cellular automata theory
+- Inspired by [Acerola](https://www.youtube.com/watch?v=I1JBiZrZ_XM), Conway's Game of Life, and cellular automata theory.
 - WebGPU examples from Mozilla Developer Network (MDN) and WebGPU spec.
 - Built with love using React, TypeScript, and WebGPU.

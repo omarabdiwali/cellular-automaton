@@ -79,7 +79,7 @@ export default function Mask({
           onClick={() => setEnabled(!enabled)}
           className={`w-full flex items-center justify-center px-6 py-3 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none select-none ${buttonClasses}`}
         >
-          {enabled ? 'Disable Neighbour' : 'Enable Neighbour'}
+          {enabled ? 'Disable Mask' : 'Enable Mask'}
         </button>
       </div>
 

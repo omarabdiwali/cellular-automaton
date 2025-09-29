@@ -22,6 +22,22 @@ export default function Home() {
   
   const animationFrameId = useRef<number | null>(null); // ID for requestAnimationFrame loop
 
+    /**
+   * Initializes a small grid with Conway's Game of Life starting pattern (a 3x3 square).
+   * @param size - The side length of the square grid
+   * @returns Uint8Array with the pattern in the center
+   */
+  const initializeConways = (size: number): Uint8Array => {
+    const grid = new Uint8Array(size * size);
+    const center = Math.floor(size / 2);
+    const deltas = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+    deltas.forEach(([dx, dy]) => {
+      const pos = (center + dy) * size + (center + dx);
+      grid[pos] = 1;
+    });
+    return grid;
+  };
+
   // Rule states for four different masks (n1 to n4)
   // n1 is initialized with Conway's Game of Life pattern
   const [n1, setN1] = useState<Uint8Array>(() => initializeConways(nSize));
@@ -91,22 +107,6 @@ export default function Home() {
     }
     return grid;
   }, []);
-
-  /**
-   * Initializes a small grid with Conway's Game of Life starting pattern (a 3x3 square).
-   * @param size - The side length of the square grid
-   * @returns Uint8Array with the pattern in the center
-   */
-  function initializeConways(size: number): Uint8Array {
-    const grid = new Uint8Array(size * size);
-    const center = Math.floor(size / 2);
-    const deltas = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
-    deltas.forEach(([dx, dy]) => {
-      const pos = (center + dy) * size + (center + dx);
-      grid[pos] = 1;
-    });
-    return grid;
-  };
 
   // Handle responsive layout detection (mobile vs desktop)
   useEffect(() => {

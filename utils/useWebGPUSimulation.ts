@@ -6,7 +6,7 @@ import { useRef, useEffect, useCallback, useState } from 'react';
  * This compute shader processes a grid using multiple rule sets (up to 4 enabled rules).
  * It counts valid neighbors based on rule masks for birth/survival conditions and applies them.
  * Supports toroidal wrapping (periodic boundary conditions) for the grid.
- * Neighborhood size is configurable via nSize (odd number, e.g., 3 for Moore neighborhood).
+ * Neighborhood size is configurable via nSize (odd number, e.g. 3 for Moore neighborhood).
  */
 const shaderCode = `
 struct Params {
@@ -116,8 +116,8 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
  * reads the resulting grid, and handles reset. Supports square grids of size mSize x mSize
  * with configurable neighborhood size nSize (must be odd).
  *
- * @param mSize - Size of the square grid (e.g., 256 for 256x256).
- * @param nSize - Size of the neighborhood rule grid (e.g., 3 for Moore neighborhood).
+ * @param mSize - Size of the square grid (e.g. 256 for 256x256).
+ * @param nSize - Size of the neighborhood rule grid (e.g. 3 for Moore neighborhood).
  * @returns Object with methods: runSimulationStep, drawGridData, resetSimulation, and isReady flag.
  */
 export function useWebGPUSimulation(mSize: number, nSize: number) {

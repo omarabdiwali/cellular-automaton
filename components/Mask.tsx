@@ -1,4 +1,4 @@
-import { Boundaries, Props } from "@/utils/types";
+import { Boundaries, MaskProps } from "@/utils/types";
 import { useState, useMemo, useCallback, useEffect } from "react";
 
 export default function Mask({ 
@@ -9,7 +9,7 @@ export default function Mask({
   size, 
   enabled, 
   setEnabled 
-}: Props) {
+}: MaskProps) {
 
   const [grid, setGrid] = useState<Uint8Array>(initialGrid);
   const [isDrawing, setIsDrawing] = useState(false);

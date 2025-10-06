@@ -1,7 +1,8 @@
 import Mask from "@/components/Mask";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useWebGPUSimulation } from "@/utils/useWebGPUSimulation";
-import { Boundaries, RulesData } from "@/utils/types";
+import { Boundaries, HelpSectionValues, RulesData } from "@/utils/types";
+import HelpModal from "@/components/HelpModal";
 
 /**
  * Main Home component for the Cellular Automaton simulator.
@@ -22,7 +23,11 @@ export default function Home() {
   
   const animationFrameId = useRef<number | null>(null); // ID for requestAnimationFrame loop
 
-    /**
+  // Help system state
+  const [showHelp, setShowHelp] = useState(false);
+  const [currentHelpSection, setCurrentHelpSection] = useState<HelpSectionValues>("overview");
+
+  /**
    * Initializes a small grid with Conway's Game of Life starting pattern (a 3x3 square).
    * @param size - The side length of the square grid
    * @returns Uint8Array with the pattern in the center
@@ -61,7 +66,7 @@ export default function Home() {
   const [isRunning, setIsRunning] = useState(false); // Toggle for starting/stopping animation
   const [isEnabled, setIsEnabled] = useState(true); // Overall enabled state based on any mask active
   const [animationSpeed, setAnimationSpeed] = useState(30); // FPS for simulation speed
-  const [density, setDensity] = useState(0.1); // Density for random grid generation (0 to 1, initial 0.1)
+  const [density, setDensity] = useState(0.2); // Density for random grid generation (0 to 1, initial 0.1)
   const [initializationStatus, setInitializationStatus] = useState("Initializing WebGPU..."); // Status for loading
 
   // Custom hook for WebGPU-based simulation
@@ -210,6 +215,12 @@ export default function Home() {
 
   return (
     <div className={`flex ${isMobileLayout ? 'flex-col' : 'flex-row'} gap-2 py-3 text-white`}>
+      <HelpModal
+        isOpen={showHelp}
+        onClose={() => setShowHelp(false)}
+        currentSection={currentHelpSection}
+        onSectionChange={(section) => setCurrentHelpSection(section)}
+      />
       {/* Left section: Canvas and controls */}
       <div ref={containerRef} className={`flex flex-col ${isMobileLayout ? 'w-full px-5' : 'w-1/2 pr-5 h-full'} gap-4`}>
         <div className="flex-1 relative" style={{ minHeight: 0 }}>
@@ -254,12 +265,12 @@ export default function Home() {
             />
           </div>
           <div className="flex gap-2">
-            <button onClick={handleRandomize} className="px-4 py-2 bg-green-600 rounded hover:bg-green-700">Random</button>
-
-            <button onClick={handleClear} className="px-4 py-2 bg-red-600 rounded hover:bg-red-700">Clear</button>
-            <button onClick={() => setIsRunning(!isRunning)} className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700 w-20">
+            <button onClick={handleRandomize} className="px-4 cursor-pointer py-2 bg-green-600 rounded hover:bg-green-700">Random</button>
+            <button onClick={handleClear} className="px-4 cursor-pointer py-2 bg-red-600 rounded hover:bg-red-700">Clear</button>
+            <button onClick={() => setIsRunning(!isRunning)} className="px-4 cursor-pointer py-2 bg-blue-600 rounded hover:bg-blue-700 w-20">
               {isRunning ? "Stop" : "Start"}
             </button>
+            <button onClick={() => setShowHelp(true)} className="px-4 cursor-pointer py-2 bg-purple-600 rounded-lg ml-auto hover:bg-purple-700">Help</button>
           </div>
         </div>
       </div>

@@ -23,7 +23,7 @@ export interface Boundaries {
   upperBorn: number;
 }
 
-export interface Props {
+export interface MaskProps {
   initialGrid: Uint8Array;
   setGlobalGrid: Dispatch<SetStateAction<Uint8Array<ArrayBufferLike>>>;
   setGlobalBoundaries: Dispatch<SetStateAction<Boundaries>>;
@@ -69,3 +69,12 @@ export interface ResetSimulationProps {
   imageData: ImageData | null | undefined;
   grid: Uint8Array;
 }
+
+export interface HelpModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  currentSection: HelpSectionValues;
+  onSectionChange: (section: HelpSectionValues) => void;
+}
+
+export type HelpSectionValues = "overview" | "simulation" | "masks" | "rules" | "examples" | "performance";

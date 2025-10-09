@@ -24,7 +24,7 @@ export default function Home() {
   const animationFrameId = useRef<number | null>(null); // ID for requestAnimationFrame loop
 
   // Help system state
-  const [showHelp, setShowHelp] = useState(false);
+  const [showHelp, setShowHelp] = useState(true);
   const [currentHelpSection, setCurrentHelpSection] = useState<HelpSectionValues>("overview");
 
   /**
